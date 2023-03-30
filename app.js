@@ -1,19 +1,32 @@
+const express = require('express');
 const { Octokit } = require('@octokit/rest');
 
+const app = express();
+
 const octokit = new Octokit({
-  auth: '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'
+  auth : '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'
+});
+app.get('/',(req,res)=>res.send('hy i am running'))
+
+app.get('/files', async (req, res) => {
+  try {
+    const { owner, repo } = req.query;
+    const response = await octokit.repos.getContent({
+      owner,
+      repo,
+      ref: 'master'
+    });
+    const files = response.data.filter(item => item.type === 'file');
+   //res.json(files);
+   const fileNames = files.map(file => file.name);
+   res.json(fileNames);
+  } 
+  catch (error) {
+    console.error(error);
+    res.status(500).send('An error occurred while retrieving repository files');
+  }
 });
 
-async function getFiles() {
-  const response = await octokit.repos.getContent({
-    owner: 'Colt',
-    repo: 'YelpCamp',
-    path: 'https://github.com',
-    ref: 'master'
-  });
-
-  const files = response.data.filter(item => item.type === 'file');
-  console.log(files.map(file => file.name));
-}
-
-getFiles();
+app.listen(3000, () => {
+  console.log('Listening on port 3000');
+});
